@@ -1,0 +1,455 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template creates a CodePipeline to deploy a website to an S3 bucket.",
+    "Parameters": {
+        "BucketName": {
+            "Type": "String",
+            "Description": "Name of bucket to create to host the website."
+        },
+        "BuildType": {
+            "Type": "String",
+            "Default": "LINUX_CONTAINER",
+            "Description": "The build container type to use for building the app."
+        },
+        "BuildComputeType": {
+            "Type": "String",
+            "Default": "BUILD_GENERAL1_SMALL",
+            "Description": "The build compute type to use for building the app."
+        },
+        "BuildImage": {
+            "Type": "String",
+            "Default": "aws/codebuild/standard:2.0",
+            "Description": "The build image to use for building the app."
+        },
+        "GitHubUser": {
+            "Type": "String",
+            "Description": "GitHub Username."
+        },
+        "GitHubRepo": {
+            "Type": "String",
+            "Description": "GitHub Repo to pull from. Only the Name, not the URL."
+        },
+        "GitHubBranch": {
+            "Type": "String",
+            "Description": "GitHub Branch."
+        },
+        "GitHubToken": {
+            "NoEcho": true,
+            "Type": "String",
+            "Description": "GitHub Token stored in AWS Systems Manager Parameter Store."
+        }
+    },
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Site Configuration"
+                    },
+                    "Parameters": [
+                        "BucketName"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "GitHub Configuration"
+                    },
+                    "Parameters": [
+                        "GitHubToken",
+                        "GitHubUser",
+                        "GitHubRepo",
+                        "GitHubBranch"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Build Configuration"
+                    },
+                    "Parameters": [
+                        "BuildType",
+                        "BuildComputeType",
+                        "BuildImage"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+                "BucketName": {
+                    "default": "Name of S3 Bucket to create for website hosting"
+                },
+                "GitHubToken": {
+                    "default": "GitHub OAuth2 Token"
+                },
+                "GitHubUser": {
+                    "default": "GitHub User/Org Name"
+                },
+                "GitHubRepo": {
+                    "default": "GitHub Repository Name"
+                },
+                "GitHubBranch": {
+                    "default": "GitHub Branch Name"
+                },
+                "BuildType": {
+                    "default": "CodeBuild type"
+                },
+                "BuildComputeType": {
+                    "default": "CodeBuild instance type"
+                },
+                "BuildImage": {
+                    "default": "CodeBuild image"
+                }
+            }
+        }
+    },
+    "Resources": {
+        "CodeBuildRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "codebuild.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": {
+                            "Fn::Sub": "${AWS::StackName}-codepipeline-policy"
+                        },
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": "*",
+                                    "Resource": "*"
+                                }
+                            ],
+                            "Version": "2012-10-17"
+                        }
+                    }
+                ]
+            }
+        },
+        "CodePipelineRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "codepipeline.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": {
+                            "Fn::Sub": "${AWS::StackName}-codepipeline-policy"
+                        },
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "codebuild:*"
+                                    ],
+                                    "Resource": "*",
+                                    "Effect": "Allow"
+                                },
+                                {
+                                    "Action": [
+                                        "s3:GetObject",
+                                        "s3:GetObjectVersion",
+                                        "s3:GetBucketVersioning"
+                                    ],
+                                    "Resource": "*",
+                                    "Effect": "Allow"
+                                },
+                                {
+                                    "Action": [
+                                        "s3:PutObject"
+                                    ],
+                                    "Resource": [
+                                        "arn:aws:s3:::codepipeline*"
+                                    ],
+                                    "Effect": "Allow"
+                                },
+                                {
+                                    "Action": [
+                                        "s3:*",
+                                        "cloudformation:*",
+                                        "iam:PassRole"
+                                    ],
+                                    "Resource": "*",
+                                    "Effect": "Allow"
+                                }
+                            ],
+                            "Version": "2012-10-17"
+                        }
+                    }
+                ]
+            }
+        },
+        "SiteBucket": {
+            "Type": "AWS::S3::Bucket",
+            "DeletionPolicy": "Delete",
+            "Properties": {
+                "AccessControl": "PublicRead",
+                "BucketName": {
+                    "Ref": "BucketName"
+                },
+                "WebsiteConfiguration": {
+                    "IndexDocument": "index.html",
+                    "ErrorDocument": "index.html"
+                }
+            }
+        },
+        "BucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "PublicReadForGetBucketObjects",
+                            "Effect": "Allow",
+                            "Principal": "*",
+                            "Action": "s3:GetObject",
+                            "Resource": {
+                                "Fn::Join": [
+                                    "",
+                                    [
+                                        "arn:aws:s3:::",
+                                        {
+                                            "Ref": "SiteBucket"
+                                        },
+                                        "/*"
+                                    ]
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Bucket": {
+                    "Ref": "SiteBucket"
+                }
+            }
+        },
+        "PipelineBucket": {
+            "Type": "AWS::S3::Bucket",
+            "DeletionPolicy": "Delete"
+        },
+        "CodeBuildDeploySite": {
+            "Type": "AWS::CodeBuild::Project",
+            "DependsOn": "CodeBuildRole",
+            "Properties": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-codebuild-project"
+                },
+                "Description": "Deploy site to S3",
+                "ServiceRole": {
+                    "Fn::GetAtt": [
+                        "CodeBuildRole",
+                        "Arn"
+                    ]
+                },
+                "Artifacts": {
+                    "Type": "CODEPIPELINE"
+                },
+                "Environment": {
+                    "Type": {
+                        "Ref": "BuildType"
+                    },
+                    "ComputeType": {
+                        "Ref": "BuildComputeType"
+                    },
+                    "Image": {
+                        "Fn::Sub": "${BuildImage}"
+                    }
+                },
+                "Source": {
+                    "Type": "CODEPIPELINE",
+                    "BuildSpec": {
+                        "Fn::Join": ["\n", [
+                            "version: 0.2",
+                            "env:",
+                            "  #parameter-store:",
+                            "    #MSKEY: 'VALUE'",
+                            "phases:",
+                            "  install:",
+                            "    #If you use the Ubuntu standard image 2.0 or later, you must specify runtime-versions.",
+                            "    #If you specify runtime-versions and use an image other than Ubuntu standard image 2.0, the build fails.",
+                            "    runtime-versions:",
+                            "      nodejs: 10",
+                            "    commands:",
+                            "      - curl -o- -L https://yarnpkg.com/install.sh | bash",
+                            "      - yarn install",
+                            "  pre_build:",
+                            "    commands:",
+                            {
+                                "Fn::Sub": "    - aws s3 rm s3://${BucketName} --recursive"
+                            },
+                            "  build:",
+                            "    commands:",
+                            "    #- export SOME_TOKEN=$MSKEY",
+                            "    #- yarn build",
+                            "  post_build:",
+                            "    commands:",
+                            "    #- cd dist or cd build",
+                            "artifacts:",
+                            "  files:",
+                            "    - '**/*'",
+                            "  name: $(AWS_REGION)-$(date +%Y-%m-%d)",
+                            "  discard-paths: no",
+                            "  base-directory: dist or build"
+                        ]]
+                    }
+                },
+                "TimeoutInMinutes": 10
+            }
+        },
+        "Pipeline": {
+            "Type": "AWS::CodePipeline::Pipeline",
+            "Properties": {
+                "RoleArn": {
+                    "Fn::GetAtt": [
+                        "CodePipelineRole",
+                        "Arn"
+                    ]
+                },
+                "Stages": [
+                    {
+                        "Name": "Source",
+                        "Actions": [
+                            {
+                                "InputArtifacts": [],
+                                "Name": "Source",
+                                "ActionTypeId": {
+                                    "Category": "Source",
+                                    "Owner": "ThirdParty",
+                                    "Version": "1",
+                                    "Provider": "GitHub"
+                                },
+                                "OutputArtifacts": [
+                                    {
+                                        "Name": "SourceArtifacts"
+                                    }
+                                ],
+                                "Configuration": {
+                                    "Owner": {
+                                        "Ref": "GitHubUser"
+                                    },
+                                    "Repo": {
+                                        "Ref": "GitHubRepo"
+                                    },
+                                    "Branch": {
+                                        "Ref": "GitHubBranch"
+                                    },
+                                    "OAuthToken": {
+                                        "Ref": "GitHubToken"
+                                    }
+                                },
+                                "RunOrder": 1
+                            }
+                        ]
+                    },
+                    {
+                        "Name": "Build",
+                        "Actions": [
+                            {
+                                "InputArtifacts": [
+                                    {
+                                        "Name": "SourceArtifacts"
+                                    }
+                                ],
+                                "Name": "Build",
+                                "ActionTypeId": {
+                                    "Category": "Build",
+                                    "Owner": "AWS",
+                                    "Version": "1",
+                                    "Provider": "CodeBuild"
+                                },
+                                "OutputArtifacts": [
+                                    {
+                                        "Name": "OutputArtifacts"
+                                    }
+                                ],
+                                "Configuration": {
+                                    "ProjectName": {
+                                        "Ref": "CodeBuildDeploySite"
+                                    }
+                                },
+                                "RunOrder": 1
+                            }
+                        ]
+                    },
+                    {
+                        "Name": "Deploy",
+                        "Actions": [
+                            {
+                                "Name": "Deploy",
+                                "ActionTypeId": {
+                                    "Category": "Deploy",
+                                    "Owner": "AWS",
+                                    "Version": "1",
+                                    "Provider": "S3"
+                                },
+                                "InputArtifacts": [
+                                    {
+                                        "Name": "OutputArtifacts"
+                                    }
+                                ],
+                                "Configuration": {
+                                    "BucketName": {
+                                        "Ref": "SiteBucket"
+                                    },
+                                    "Extract": true
+                                },
+                                "RunOrder": 1
+                            }
+                        ]
+                    }
+                ],
+                "ArtifactStore": {
+                    "Type": "S3",
+                    "Location": {
+                        "Ref": "PipelineBucket"
+                    }
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "PipelineUrl": {
+            "Value": {
+                "Fn::Sub": "https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${Pipeline}"
+            },
+            "Description": "CodePipeline URL"
+        },
+        "SiteUrl": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "SiteBucket",
+                    "WebsiteURL"
+                ]
+            },
+            "Description": "S3 Website URL"
+        }
+    }
+}
