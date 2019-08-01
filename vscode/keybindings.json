@@ -1,0 +1,54 @@
+// Place your key bindings in this file to overwrite the defaults
+[
+    {   // add block comment
+        "key": "alt+cmd+/",
+        "command": "editor.action.blockComment",
+        "when": "editorTextFocus && !editorReadonly"
+    },
+    {
+        "key": "shift+alt+a",
+        "command": "-editor.action.blockComment",
+        "when": "editorTextFocus && !editorReadonly"
+    },
+    {   // show terminal
+        "key": "alt+cmd+z",
+        "command": "workbench.action.terminal.toggleTerminal"
+    },
+    {
+        "key": "ctrl+`",
+        "command": "-workbench.action.terminal.toggleTerminal"
+    },
+    {   // switch to editor from terminal
+        "key": "cmd+alt+x",
+        "command": "workbench.action.focusActiveEditorGroup", "when": "terminalFocus"
+    },
+    {   // switch to terminal from editor
+        "key": "cmd+alt+x",
+        "command": "workbench.action.terminal.focus",
+        "when": "!terminalFocus"
+    },
+    {   // create new terminal
+        "key": "alt+cmd+v",
+        "command": "workbench.action.terminal.new"
+    },
+    {
+        "key": "ctrl+shift+`",
+        "command": "-workbench.action.terminal.new"
+    },
+    {   // maximise terminal
+        "key": "alt+cmd+c",
+        "command": "workbench.action.toggleMaximizedPanel"
+    },
+    {   // previous terminal
+        "key": "alt+cmd+b",
+        "command": "workbench.action.terminal.focusPrevious"
+    },
+    {   // next terminal
+        "key": "alt+cmd+n",
+        "command": "workbench.action.terminal.focusNext"
+    },
+    {   // kill current terminal
+        "key": "alt+cmd+m",
+        "command": "workbench.action.terminal.kill"
+    } 
+]
