@@ -3,7 +3,7 @@
 Launch terminal = Super+T
 Launch web browser = Super+B
 Navigation
-Hide all normal windows = Ctril+Super+H
+Hide all normal windows = Ctrl+Super+H
 Move to workspace above = Super+Up
 Move to workspace below = Super+Down
 Move window one workspace down = Alt+Super+Down
