@@ -1,4 +1,3 @@
-```python
 # MAC OS .bash_profile file
 # ============================== CUSTOM FUNCTIONS ==============================
 # Git branch in prompt
@@ -241,4 +240,3 @@ alias tf="terraform"
 # ============================== VIRTUAL ENVIRONMENT COMMANDS ==============================
 # activate env + <env name>
 alias startve="source activate"
-```
