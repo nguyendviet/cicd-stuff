@@ -32,14 +32,22 @@ sync_file_server() {
     fi
 }
 
-# Remove all objects in an AWS S3 bucket
+# remove all objects in an AWS S3 bucket
 s3_remove() {
-    aws s3 rm s3://"$1" --recursive
+    if [ "$2" ]; then
+        aws s3 rm s3://"$1" --recursive --profile "$2"
+    else
+        aws s3 rm s3://"$1" --recursive
+    fi
 }
 
-# Copy all files in a local folder to an AWS S3 bucket
+# copy all files in a local folder to an AWS S3 bucket
 s3_copy() {
-    aws s3 cp "$1" s3://"$2" --recursive --exclude ".DS_Store"
+    if [ "$3" ]; then
+        aws s3 cp "$1" s3://"$2" --recursive --exclude ".DS_Store" --profile "$3"
+    else
+        aws s3 cp "$1" s3://"$2" --recursive --exclude ".DS_Store"
+    fi
 }
 
 # Create a CloudFormation stack from a json template.
