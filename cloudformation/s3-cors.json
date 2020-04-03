@@ -38,15 +38,16 @@
     },
     "Outputs": {
         "BucketARN": {
+            "Description": "ARN of the bucket.",
             "Value": {
                 "Fn::GetAtt": [
                     "S3Bucket",
                     "Arn"
                 ]
-            },
-            "Description": "ARN of the bucket."
+            }
         },
         "S3BucketSecureURL": {
+            "Description": "The IPv4 DNS name of the bucket.",
             "Value": {
                 "Fn::Join": [
                     "",
@@ -60,8 +61,7 @@
                         }
                     ]
                 ]
-            },
-            "Description": "The IPv4 DNS name of the bucket."
+            }
         },
         "UploadBucketName": {
             "Value": {
