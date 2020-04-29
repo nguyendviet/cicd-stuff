@@ -6,19 +6,6 @@ export NVM_DIR="$HOME/.nvm"
 
 # ============================== CUSTOM FUNCTIONS ==============================
 
-# Git branch in prompt
-parse_git_branch() {
-    # space between dir name and (git branch)
-    # git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
-    # no space between dir name and (git branch)
-    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
-}
-
-# export PS1="\u@\h:\W\[\033[0;35m\]\$(parse_git_branch)\[\033[00m\]$ "
-# w = full path W = current dir
-# more colours and style:
-export PS1="\[\033[0;32m\]\u@\h\[\033[00m\]:\[\033[0;33m\]\W\[\033[0;35m\]\$(parse_git_branch)\[\033[00m\]\$ "
-
 # Git branch in prompt for zsh:
 parse_git_branch() {
     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
@@ -26,7 +13,7 @@ parse_git_branch() {
 }
 
 setopt PROMPT_SUBST
-PS1='%{%F{green}%}%n@%m:%{%F{yellow}%}%1~%{%F{red}%}$(parse_git_branch)%{%F{none}%}$ '
+PS1='%{%F{green}%}%n@%m:%{%F{yellow}%}%1~%{%F{magenta}%}$(parse_git_branch)%{%F{none}%}$ '
 
 # copy folder to Entarch
 # should exclude node_modules folder but NDI entarch is to slow to install packages so it's faster just to upload it
@@ -169,6 +156,7 @@ alias update-my-website="rm_obj_s3 vietducnguyen.com && up_s3 build vietducnguye
 alias cdrpggame="cd ~/webdev/rpg-game"
 alias cdwebdev="cd ~/webdev"
 alias cdndi="cd ~/webdev/ndi"
+alias cdcicd="cd_git_pull ~/webdev/cicd-stuff cicd-stuff"
 alias cdveglist="cd_git_pull ~/webdev/veglist veglist"
 alias cdalgo="cd_git_pull ~/webdev/algorithms algorithms"
 alias cdvietgo="cd_git_pull ~/go/src/github.com/nguyendviet/vietgo vietgo"
