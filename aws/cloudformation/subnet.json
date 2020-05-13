@@ -1,0 +1,95 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template creates a subnet. Version: 1.0.0",
+    "Metadata": {
+    },
+    "Parameters": {
+        "EnvType" : {
+            "Description" : "Environment type.",
+            "Default" : "test",
+            "Type" : "String",
+            "AllowedValues" : ["prod", "dev", "test"],
+            "ConstraintDescription" : "must specify prod, dev, or test."
+        },
+        "VpcId": {
+            "Type": "String"
+        },
+        "CidrBlock": {
+            "Type": "String"
+        },
+        "RouteTableId": {
+            "Type": "String"
+        }
+    },
+    "Mappings": {
+    },
+    "Conditions": {
+        "CreateProdResources" : {"Fn::Equals" : [{"Ref" : "EnvType"}, "prod"]},
+        "CreateDevResources" : {"Fn::Equals" : [{"Ref" : "EnvType"}, "dev"]}
+    },
+    "Resources": {
+        "Subnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "AvailabilityZone": {
+                    "Fn::Select" : [ 
+                        "0", 
+                        { 
+                          "Fn::GetAZs" : "" 
+                        } 
+                    ]
+                },
+                "CidrBlock": {
+                    "Ref": "CidrBlock"
+                },
+                "MapPublicIpOnLaunch": false,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${EnvType} Subnet"
+                        }
+                    },
+                    {
+                        "Key": "Stage",
+                        "Value": {
+                            "Fn::If" : [
+                                "CreateProdResources",
+                                "Production",
+                                {
+                                    "Fn::If" : [
+                                        "CreateDevResources",
+                                        "Development",
+                                        "Test"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "SubnetRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTableId"
+                },
+                "SubnetId": {
+                    "Ref": "Subnet"
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "Subnet": {
+            "Description": "A reference to the subnet",
+            "Value": {
+                "Ref": "Subnet"
+            }
+        }
+    }
+}
