@@ -67,6 +67,10 @@ cloudformation_create() {
    fi
 }
 
+cloudformation_validate() {
+    aws cloudformation validate-template --template-body file://"$1"
+}
+
 # delete a cloudformation stack
 cloudformation_delete() {
    aws cloudformation delete-stack --stack-name "$1"
@@ -128,6 +132,9 @@ alias cewa-update-prod="s3_remove nigeriavotescount.org && s3_copy build nigeria
 alias cewa-update-dev="s3_remove dev.nigeriavotescount.org && s3_copy build dev.nigeriavotescount.org"
 alias asia-aed-build="cd ~/webdev/ndi/af-elections/ && export MB_TOKEN=pk.eyJ1IjoibmRpIiwiYSI6ImNqeW9lbDA1ajE0MDMzbG50Mm83OHZ1ZzAifQ.dSuLqIBGvOW8_EMbB-grsg && yarn build"
 alias asia-aed-update-dev="s3_remove dev.afghanistanelectiondata.org ndi && s3_copy ~/webdev/ndi/af-elections/dist dev.afghanistanelectiondata.org ndi"
+alias tech-cyber-update="s3_remove cyber.ndi.org && s3_copy build cyber.ndi.org"
+alias cf-create="cloudformation_create"
+alias cf-validate="cloudformation_validate"
 
 # ============================== CONDA COMMANDS ==============================
 # create virtual env + <evn name> + <django or python version>
@@ -152,7 +159,6 @@ alias vent="ssh vnguyen@entarch.ndi.org"
 # ============================== FOLDER COMMANDS ==============================
 # For Linux Ubuntu
 # alias opendir="xdg-open ."
-alias update-my-website="rm_obj_s3 vietducnguyen.com && up_s3 build vietducnguyen.com"
 alias cdrpggame="cd ~/webdev/rpg-game"
 alias cdwebdev="cd ~/webdev"
 alias cdndi="cd ~/webdev/ndi"
