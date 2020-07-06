@@ -7,3 +7,10 @@
 > Note: If you don't want to save setting files here, use VSCode extension Settings Sync by Shan Khan.
 
 >Note: Microsoft's own [Settings Sync](https://code.visualstudio.com/docs/editor/settings-sync) is still in Preview and only available on VS Code Insiders.
+
+## VSCode default shortcuts:
+- Select all occurences in the same line: `option + command + D`
+- Expand cursor in the same column: `option + command + UP or DOWN`
+- Move line: `command + UP or DOWN`
+- Copy line: `option + shift + UP or DOWN`
+- Delete line: `command + shift + K`
