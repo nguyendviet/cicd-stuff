@@ -14,3 +14,5 @@
 - Move line: `command + UP or DOWN`
 - Copy line: `option + shift + UP or DOWN`
 - Delete line: `command + shift + K`
+- Jump to matching bracket: `command + shift + \`
+- Use smartSelect: `control + shift + right`. Hit right a few times to select the whole content inside a bracket or function.
