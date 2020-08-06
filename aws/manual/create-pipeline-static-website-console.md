@@ -36,12 +36,12 @@
             - '**/*'
         name: $(AWS_REGION)-$(date +%Y-%m-%d)
         ```
-    ::warning:: don't specify `base-directory:` unless there's a `dist` or `build` folder.
+    :warning: don't specify `base-directory:` unless there's a `dist` or `build` folder.
 1. Back to CodePipeLine
     - Add deploy stage
         - Deploy provider: Amazon S3
         - Bucket: bucket name
-        - Select "Extract file before deploy". ::warning:: Don't specify "Deployment path - optional" as "/" because that won't copy anything from the repo to the bucket.
+        - Select "Extract file before deploy". :warning: Don't specify "Deployment path - optional" as "/" because that won't copy anything from the repo to the bucket.
 1. SNS (optional)
     - Create topic
         - Name: name of topic
