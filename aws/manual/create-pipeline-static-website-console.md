@@ -42,6 +42,26 @@
         - Deploy provider: Amazon S3
         - Bucket: bucket name
         - Select "Extract file before deploy". :warning: Don't specify "Deployment path - optional" as "/" because that won't copy anything from the repo to the bucket.
+1. CodeBuild
+    - Go to Build project > YOUR_PROJECT_NAME > Build details > Environment > Service role.
+    - Add these to the role to allow CodeBuild to remove objects in the bucket and also explicitly deny delete bucket action to prevent mistake:
+    ```json
+    {
+        "Effect": "Allow",
+        "Resource": [
+            "arn:aws:s3:::YOUR_BUCKET_NAME",
+            "arn:aws:s3:::YOUR_BUCKET_NAME/*"
+        ],
+        "Action": "*"
+    },
+    {
+        "Effect": "Deny",
+        "Resource": [
+            "arn:aws:s3:::YOUR_BUCKET_NAME"
+        ],
+        "Action": "s3:DeleteBucket"
+    },
+    ```
 1. SNS (optional)
     - Create topic
         - Name: name of topic
