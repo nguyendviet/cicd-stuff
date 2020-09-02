@@ -1,0 +1,16 @@
+version: 0.2
+
+phases:
+    pre_build:
+        commands:
+        - aws s3 rm s3://BUCKET_NAME --recursive
+    build:
+        commands:
+        - echo "Simple static site. No build commands needed."
+    post_build:
+        commands:
+        - rm -rf .DS_Store .git .gitignore LICENSE README.md
+artifacts:
+    files:
+        - '**/*'
+    name: $(AWS_REGION)-$(date +%Y-%m-%d)

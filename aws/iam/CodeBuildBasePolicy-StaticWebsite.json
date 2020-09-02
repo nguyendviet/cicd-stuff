@@ -1,0 +1,21 @@
+{
+    "Version": "2012-10-17",
+    "Description": "Extra rules allow CodeBuild to empty the bucket before putting new files in and deny bucket deletion. These should be added to auto-generated policy created by CodeBuild",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:s3:::YOUR_BUCKET_NAME",
+                "arn:aws:s3:::YOUR_BUCKET_NAME/*"
+            ],
+            "Action": "*"
+        },
+        {
+            "Effect": "Deny",
+            "Resource": [
+                "arn:aws:s3:::YOUR_BUCKET_NAME"
+            ],
+            "Action": "s3:DeleteBucket"
+        }
+    ]
+}
